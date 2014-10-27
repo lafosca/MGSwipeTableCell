@@ -1,9 +1,14 @@
 /*
- * MGSwipeTableCell is licensed under MIT license. See LICENSE.md file for more information.
+ * MGSwipeTableCell is licensed under MIT licensed. See LICENSE.md file for more information.
  * Copyright (c) 2014 Imanol Fernandez @MortimerGoro
  */
 
 #import <UIKit/UIKit.h>
+
+typedef enum : NSUInteger {
+    SwipeStateInProgress,
+    SwipeStateCompleted
+} SwipeState;
 
 
 @class MGSwipeTableCell;
@@ -26,14 +31,14 @@ typedef BOOL(^MGSwipeButtonCallback)(MGSwipeTableCell * sender);
  * Convenience static constructors
  */
 +(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color;
-+(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color padding:(NSInteger) padding;
 +(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color callback:(MGSwipeButtonCallback) callback;
-+(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color padding:(NSInteger) padding callback:(MGSwipeButtonCallback) callback;
 +(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color;
-+(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color padding:(NSInteger) padding;
 +(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color callback:(MGSwipeButtonCallback) callback;
-+(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color padding:(NSInteger) padding callback:(MGSwipeButtonCallback) callback;
 
--(void) setPadding:(CGFloat) padding;
+
+
++ (instancetype)buttonWithIcon:(UIImage *)icon;
+- (void)setTitle:(NSString *)title andColor:(UIColor *)color forSwipeState:(SwipeState)state;
+- (void)updateForSwipeState:(SwipeState)state;
 
 @end
