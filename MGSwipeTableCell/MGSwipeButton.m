@@ -9,15 +9,29 @@
 
 @interface MGSwipeButton ()
 
-@property (nonatomic, strong) UIColor *inProgressColor;
-@property (nonatomic, strong) NSString *inProgressTitle;
-
-@property (nonatomic, strong) UIColor *completedColor;
-@property (nonatomic, strong) NSString *completedTitle;
-
 @end
 
 @implementation MGSwipeButton
+
++ (instancetype)buttonWithIcon:(UIImage *)icon progressColor:(UIColor *)progressColor completedColor:(UIColor *)completedColor {
+    MGSwipeButton *button = [MGSwipeButton buttonWithType:UIButtonTypeCustom];
+    [button setBackgroundColor:progressColor];
+    [button setImage:icon forState:UIControlStateNormal];
+    [button sizeToFit];
+    [button setProgressColor:progressColor];
+    [button setCompletedColor:completedColor];
+    
+    CGRect frame = button.frame;
+    frame.size.width += 10; //padding
+    frame.size.width = MAX(200, frame.size.width); //initial min size
+    button.frame = frame;
+
+    [button setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+    [button setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
+    [button setImageEdgeInsets:UIEdgeInsetsMake(0, 20, 0, 0)];
+
+    return button;
+}
 
 +(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color
 {
@@ -53,11 +67,8 @@
     [button setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
     [button setImageEdgeInsets:UIEdgeInsetsMake(-25, 25, 0, 0)];
     [button setTitleEdgeInsets:UIEdgeInsetsMake(55, 0, 0, 0)];
-    
+        
     return button;
-}
-
-- (void)adjustSize {
 }
 
 -(BOOL) callMGSwipeConvenienceCallback: (MGSwipeTableCell *) sender
@@ -67,43 +78,13 @@
     }
     return NO;
 }
-
-// Added methods
-@synthesize inProgressColor, inProgressTitle, completedColor, completedTitle;
-
-+ (instancetype)buttonWithIcon:(UIImage *)icon {
-    return [MGSwipeButton buttonWithTitle:@"" icon:icon backgroundColor:nil callback:nil];
-}
-
-
-- (void)setTitle:(NSString *)title andColor:(UIColor *)color forSwipeState:(SwipeState)state {
-    switch (state) {
-        case SwipeStateInProgress:
-            [self setInProgressColor:color];
-            [self setInProgressTitle:title];
-            [self setBackgroundColor:color];
-            [self setTitle:title forState:UIControlStateNormal];
-            break;
-            
-        case SwipeStateCompleted:
-            [self setCompletedColor:color];
-            [self setCompletedTitle:title];
-            break;
-            
-        default:
-            break;
-    }
-}
-
 - (void)updateForSwipeState:(SwipeState)state {
     switch (state) {
         case SwipeStateInProgress:
-            [self setTitle:self.inProgressTitle forState:UIControlStateNormal];
-            [self setBackgroundColor:self.inProgressColor];
+            [self setBackgroundColor:self.progressColor];
             break;
             
         case SwipeStateCompleted:
-            [self setTitle:self.completedTitle forState:UIControlStateNormal];
             [self setBackgroundColor:self.completedColor];
             break;
             

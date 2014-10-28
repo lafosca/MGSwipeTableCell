@@ -27,18 +27,19 @@ typedef enum : NSUInteger {
 typedef BOOL(^MGSwipeButtonCallback)(MGSwipeTableCell * sender);
 @property (nonatomic, strong) MGSwipeButtonCallback callback;
 
+@property (nonatomic, strong) UIColor *progressColor;
+@property (nonatomic, strong) UIColor *completedColor;
+
+
 /** 
  * Convenience static constructors
  */
++ (instancetype)buttonWithIcon:(UIImage *)icon progressColor:(UIColor *)progressColor completedColor:(UIColor *)completedColor;
 +(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color;
 +(instancetype) buttonWithTitle:(NSString *) title backgroundColor:(UIColor *) color callback:(MGSwipeButtonCallback) callback;
 +(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color;
 +(instancetype) buttonWithTitle:(NSString *) title icon:(UIImage*) icon backgroundColor:(UIColor *) color callback:(MGSwipeButtonCallback) callback;
 
-
-
-+ (instancetype)buttonWithIcon:(UIImage *)icon;
-- (void)setTitle:(NSString *)title andColor:(UIColor *)color forSwipeState:(SwipeState)state;
 - (void)updateForSwipeState:(SwipeState)state;
 
 @end

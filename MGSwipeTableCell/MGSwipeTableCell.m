@@ -6,34 +6,6 @@
 #import "MGSwipeTableCell.h"
 #import "MGSwipeButton.h"
 
-#pragma mark Input Overlay Helper Class
-/** Used to capture table input while swipe buttons are visible*/
-@interface MGSwipeTableInputOverlay : UIView
-@property (nonatomic, weak) MGSwipeTableCell * currentCell;
-@end
-
-@implementation MGSwipeTableInputOverlay
-
--(id) initWithFrame:(CGRect)frame
-{
-    if (self = [super initWithFrame:frame]) {
-        self.backgroundColor = [UIColor clearColor];
-        self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    }
-    return self;
-}
-
--(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-    if (_currentCell && CGRectContainsPoint(_currentCell.bounds, [self convertPoint:point toView:_currentCell])) {
-        return nil;
-    }
-    [_currentCell hideSwipeAnimated:YES withCompletion:nil];
-    return self;
-}
-
-@end
-
 #pragma mark Button Container View and transitions
 
 @interface MGSwipeButtonsView : UIView
@@ -147,7 +119,8 @@
 
 -(void) handleClick:(MGSwipeButton *)sender fromExpansion:(BOOL)fromExpansion
 {
-    [UIView animateWithDuration:.5 animations:^{
+
+    [UIView animateWithDuration:0.2 animations:^{
         [sender updateForSwipeState:SwipeStateCompleted];
         [container setBackgroundColor:sender.backgroundColor];
         
@@ -157,7 +130,7 @@
             if (!fromLeft) {
                 index = buttons.count - index - 1; //right buttons are reversed
             }
-
+            
             [_cell.delegate swipeTableCell:_cell tappedButtonAtIndex:index direction:fromLeft ? MGSwipeDirectionLeftToRight : MGSwipeDirectionRightToLeft fromExpansion:fromExpansion];
             expandedButton = nil;
         }
@@ -278,7 +251,6 @@ typedef struct MGSwipeAnimationData {
 
 @implementation MGSwipeTableCell
 {
-    UITapGestureRecognizer * tapRecognizer;
     UIPanGestureRecognizer * panRecognizer;
     CGPoint panStartPoint;
     CGFloat panStartOffset;
@@ -292,7 +264,6 @@ typedef struct MGSwipeAnimationData {
     bool allowSwipeLeftToRight;
     __weak MGSwipeButtonsView * activeExpansion;
     
-    MGSwipeTableInputOverlay * tableInputOverlay;
     __weak UITableView * cachedParentTable;
     UITableViewCellSelectionStyle previusSelectionStyle;
     
@@ -319,7 +290,7 @@ typedef struct MGSwipeAnimationData {
 
 -(void) dealloc
 {
-    [self removeInputOverlayIfNeeded];
+
 }
 
 -(void) initViews
@@ -406,56 +377,12 @@ typedef struct MGSwipeAnimationData {
 }
 
 
-- (void) addInputOverlayIfNeeded
-{
-    if (tableInputOverlay) {
-        return;
-    }
-    swipeOverlay.hidden = NO;
-    UITableView * table = [self parentTable];
-    table.scrollEnabled = NO;
-    tableInputOverlay = [[MGSwipeTableInputOverlay alloc] initWithFrame:table.bounds];
-    tableInputOverlay.currentCell = self;
-    [table addSubview:tableInputOverlay];
-    
-    previusSelectionStyle = self.selectionStyle;
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
-    [self setAccesoryViewsHidden:YES];
-    
-    tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapHandler:)];
-    tapRecognizer.cancelsTouchesInView = YES;
-    tapRecognizer.delegate = self;
-    [self addGestureRecognizer:tapRecognizer];
-}
-
--(void) removeInputOverlayIfNeeded
-{
-    if (!tableInputOverlay) {
-        return;
-    }
-    
-    swipeOverlay.hidden = YES;
-    
-    UITableView * table = [self parentTable];
-    table.scrollEnabled = YES;
-    [tableInputOverlay removeFromSuperview];
-    tableInputOverlay = nil;
-    
-    self.selectionStyle = previusSelectionStyle;
-    [self setAccesoryViewsHidden:NO];
-    
-    if (tapRecognizer) {
-        [self removeGestureRecognizer:tapRecognizer];
-        tapRecognizer = nil;
-    }
-}
-
 #pragma mark Handle Table Events
 
 -(void) willMoveToSuperview:(UIView *)newSuperview;
 {
     if (newSuperview == nil) { //remove the table overlay when a cell is removed from the table
-        [self removeInputOverlayIfNeeded];
+
     }
 }
 
@@ -545,11 +472,10 @@ typedef struct MGSwipeAnimationData {
     
     MGSwipeButtonsView * activeButtons = sign < 0 ? rightView : leftView;
     if (!activeButtons || offset == 0) {
-        [self removeInputOverlayIfNeeded];
+
         targetOffset = 0;
     }
     else {
-        [self addInputOverlayIfNeeded];
         CGFloat swipeThreshold = sign < 0 ? _rightSwipeSettings.threshold : _leftSwipeSettings.threshold;
         targetOffset = offset > activeButtons.bounds.size.width * swipeThreshold ? activeButtons.bounds.size.width * sign : 0;
     }
@@ -573,7 +499,7 @@ typedef struct MGSwipeAnimationData {
         bool expand = expansions[i].buttonIndex >= 0 && offset > view.bounds.size.width * expansions[i].threshold;
         if (expand) {
             [view expandToOffset:offset button:expansions[i].buttonIndex];
-            targetOffset = expansions[i].fillOnTrigger ? self.contentView.bounds.size.width * sign : 0;
+            targetOffset = expansions[i].fillOnTrigger ? 60 * sign : 0;
             activeExpansion = view;
         }
         else {
@@ -651,7 +577,7 @@ typedef struct MGSwipeAnimationData {
     animationData.duration = 0.3;
     animationData.start = 0;
     displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(animationTick:)];
-    [displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
 }
 
 #pragma mark Gestures
@@ -702,12 +628,6 @@ typedef struct MGSwipeAnimationData {
         if (fabs(translation.y) > fabs(translation.x)) {
             return NO; // user is scrolling vertically
         }
-        if (swipeView) {
-            CGPoint point = [tapRecognizer locationInView:swipeView];
-            if (!CGRectContainsPoint(swipeView.bounds, point)) {
-                return NO; //user clicked outside the cell or in the buttons area
-            }
-        }
         
         if (_swipeOffset != 0.0) {
             return YES; //already swipped, don't need to check buttons or canSwipe delegate
@@ -726,10 +646,7 @@ typedef struct MGSwipeAnimationData {
         
         return (allowSwipeLeftToRight && translation.x > 0) || (allowSwipeRightToLeft && translation.x < 0);
     }
-    else if (gestureRecognizer == tapRecognizer) {
-        CGPoint point = [tapRecognizer locationInView:swipeView];
-        return CGRectContainsPoint(swipeView.bounds, point);
-    }
+
     return YES;
 }
 
