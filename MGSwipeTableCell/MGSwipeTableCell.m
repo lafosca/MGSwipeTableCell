@@ -530,7 +530,7 @@ typedef struct MGSwipeAnimationData {
 -(void) showSwipe: (MGSwipeDirection) direction animated: (BOOL) animated
 {
     UIView * buttonsView = direction == MGSwipeDirectionLeftToRight ? leftView : rightView;
-    
+    [self createSwipeViewIfNeeded];
     if (buttonsView) {
         CGFloat s = direction == MGSwipeDirectionLeftToRight ? 1.0 : -1.0;
         [self setSwipeOffset:buttonsView.bounds.size.width * s animated:animated completion:nil];
@@ -561,6 +561,8 @@ typedef struct MGSwipeAnimationData {
 }
 -(void) setSwipeOffset:(CGFloat)offset animated: (BOOL) animated completion:(void(^)()) completion
 {
+    [self createSwipeViewIfNeeded];
+
     animationCompletion = completion;
     if (displayLink) {
         [displayLink invalidate];
