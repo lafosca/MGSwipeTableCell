@@ -119,7 +119,7 @@
 
 -(void) handleClick:(MGSwipeButton *)sender fromExpansion:(BOOL)fromExpansion
 {
-
+    
     [UIView animateWithDuration:0.2 animations:^{
         [sender updateForSwipeState:SwipeStateCompleted];
         [container setBackgroundColor:sender.backgroundColor];
@@ -290,7 +290,7 @@ typedef struct MGSwipeAnimationData {
 
 -(void) dealloc
 {
-
+    
 }
 
 -(void) initViews
@@ -348,8 +348,11 @@ typedef struct MGSwipeAnimationData {
     if (!swipeOverlay) {
         swipeOverlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, self.contentView.bounds.size.height)];
         swipeOverlay.backgroundColor = [self backgroundColorForSwipe];
-        swipeView = [[UIImageView alloc] initWithImage:[self imageFromView:self]];
-//        swipeView.autoresizingMask =  UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleHeight;
+        
+        @autoreleasepool {
+            swipeView = [[UIImageView alloc] initWithImage:[self imageFromView:self]];
+        }
+        
         swipeView.frame = swipeOverlay.bounds;
         swipeView.contentMode = UIViewContentModeCenter;
         swipeView.clipsToBounds = YES;
@@ -382,7 +385,7 @@ typedef struct MGSwipeAnimationData {
 -(void) willMoveToSuperview:(UIView *)newSuperview;
 {
     if (newSuperview == nil) { //remove the table overlay when a cell is removed from the table
-
+        
     }
 }
 
@@ -416,6 +419,7 @@ typedef struct MGSwipeAnimationData {
     [view.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage * image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
+    
     return image;
 }
 
@@ -472,7 +476,7 @@ typedef struct MGSwipeAnimationData {
     
     MGSwipeButtonsView * activeButtons = sign < 0 ? rightView : leftView;
     if (!activeButtons || offset == 0) {
-
+        
         targetOffset = 0;
     }
     else {
@@ -492,8 +496,8 @@ typedef struct MGSwipeAnimationData {
         if (!view) continue;
         
         //buttons view position
-//        CGFloat translation = MIN(offset, view.bounds.size.width) * sign;
-//        view.transform = CGAffineTransformMakeTranslation(translation, 0);
+        //        CGFloat translation = MIN(offset, view.bounds.size.width) * sign;
+        //        view.transform = CGAffineTransformMakeTranslation(translation, 0);
         
         if (view != activeButtons) continue; //only transition if active (perf. improvement)
         bool expand = expansions[i].buttonIndex >= 0 && offset > view.bounds.size.width * expansions[i].threshold;
@@ -562,7 +566,7 @@ typedef struct MGSwipeAnimationData {
 -(void) setSwipeOffset:(CGFloat)offset animated: (BOOL) animated completion:(void(^)()) completion
 {
     [self createSwipeViewIfNeeded];
-
+    
     animationCompletion = completion;
     if (displayLink) {
         [displayLink invalidate];
@@ -648,7 +652,7 @@ typedef struct MGSwipeAnimationData {
         
         return (allowSwipeLeftToRight && translation.x > 0) || (allowSwipeRightToLeft && translation.x < 0);
     }
-
+    
     return YES;
 }
 
